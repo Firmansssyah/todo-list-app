@@ -1,5 +1,5 @@
 <template>
-  <div class="body" :class="{ 'isDark': darkMode }">
+    <div class="body" :class="{ 'isDark': darkMode }">
         <div class="option">
             <label class="switch">
                 <input type="checkbox" @click="darkMode = !darkMode">
@@ -8,8 +8,11 @@
         </div>
         <div class="content">
             <div class="input">
-                <input type="text" v-model="list">
-                <input type="submit" value="Add" @click="addData">
+                <input type="text" v-model="newlist" v-on:keyup.enter="addList" placeholder="add to-do here">
+                <input type="submit" value="Add" @click="addList">
+            </div>
+            <div class="info">
+                To-do complete : {{todos.length}}
             </div>
             <table>
                 <tr>
@@ -17,62 +20,62 @@
                     <th>To do</th>
                     <th>Status</th>
                 </tr>
-                <tr v-for="(todo,index) in sort(todos)">
+                <tr v-for="(todo,index) in todos" :key="index" :class="{ 'complete': todo.status}" @click='editList(index)'>
                     <td>{{index+1}}</td>
                     <td style="text-align: left;">{{todo.list}}</td>
                     <td>
-                        <input type="checkbox"
-                            v-model="todo.status"
-                            :checked="todo.status == true"
-                            :disabled="todo.status == true">
+                        <input type='checkbox'
+                            v-model='todo.status'
+                            :checked='todo.status == true'
+                            :disabled='todo.status == true'>
                         {{todo.status == true ? ' Complete':' Not yet'}}
+                        <font-awesome-icon icon='trash' @click='delList(index)'/>
                     </td>
                 </tr>
             </table>
         </div>
-  </div>
+    </div>
 </template>
-  
 <script>
-import Toasted from 'vue-toasted';
-import Vue from 'vue'
-
-Vue.use(Toasted, {
-  duration: 800,
-  position: 'top-center',
-  theme :"outline"
-})
 export default {
-    data() {
+    data(){
     return {
-        darkMode: false,
-        row:[],
-        list: '',
-        av: true,
+        darkMode: false,        
+        newlist: '',
         todos:[
             {list : "Mencuci Baju",status : true},
             {list : "Memperbaiki Kipas",status : true},
             {list : "Makan siang",status : false},
             {list : "Latihan Sepak Bola",status : false}
-        ]
-        }
+        ]}
     }, 
     methods:{
-        addData(){
+        addList(){
             for(var index in this.todos) {
-                if(this.todos[index].list == this.list) {
-                    this.$toasted.show('Data Sudah tersimpan!')
+                if(this.todos[index].list == this.newlist) {
+                    this.$toasted.show(this.newlist + ' sudah ada !')
+                    return;
+                }else if(this.newlist == ''){
+                    this.$toasted.show('Isi woy !')
                     return;
                 }
             }
+            this.$toasted.show(this.newlist +' berhasil ditambahkan!')
             this.todos.push({
-                list : this.list,
+                list : this.newlist,
                 status  :  false,
             })
+            this.newlist = '';
+        },
+        delList(index) {
+            this.todos.splice(index, 1);
+        },
+        editList(index) {
+            this.newlist = this.todos[index].list;
         },
         sort(arr) {
-        return arr.slice().sort(function(a, b) {
-        return a.status - b.status;
+            return arr.slice().sort(function(a, b) {
+            return a.status - b.status;
             });
         }
     }
@@ -80,8 +83,8 @@ export default {
 </script>
 <style>
 .body {
-    transition: background-color 300ms;
-    min-height: 100vh;
+    transition: background-color 300s;
+    min-height: 94vh;
 }
 .isDark {
     background-color: #333;
@@ -111,27 +114,27 @@ export default {
 .body .content .input input:focus{
     outline: none;
 }
+.body .content .info{
+    padding-bottom: 10px;
+}
 .body .content table{
     margin: 0 auto;
     box-shadow: 0px 0px 2px 0px black;
-    width: 40%;
-}
-.body .content table,
-.body .content table tr,
-.body .content table tr td,
-.body .content table tr th{
+    width: 90%;
     border-collapse: collapse;
 }
-.body .content table tr th,
-.body .content table tr td{
-    background-color: rgba(184, 182, 182, 0.356);
+.body .content table tr:hover{
+    cursor: pointer;
+    background-color: rgba(182, 182, 182, 0.356);
 }
 .body .content table tr td{
     padding: 6px;
     border-bottom: 1px solid grey;
 }
+.complete {
+    background-color: rgba(182, 182, 182, 0.356);
+}
 .body .content table tr th{
-    
     border-bottom: 4px solid #03A9F4;
     background-color: #0078d7;
     padding: 8px 6px;
@@ -139,64 +142,57 @@ export default {
 }
 /* toogle switch */
 .switch {
-  position: relative;
-  left: 6px;
-  top : -36px;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
+    position: relative;
+    left: 6px;
+    top : -36px;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
 }
-
 .switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
 .slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgb(53, 51, 51);
-  -webkit-transition: .4s;
-  transition: .4s;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(53, 51, 51);
+    -webkit-transition: .4s;
+    transition: .4s;
 }
 
 .slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left:4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left:4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .2s;
 }
 
 input:checked + .slider {
-  background-color:#03A9F4;
+    background-color:#03A9F4;
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px #03A9F4;
+    box-shadow: 0 0 1px #03A9F4;
 }
-
 input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
+    transform: translateX(26px);
 }
-
 /* Rounded sliders */
 .slider.round {
-  border-radius: 34px;
+    border-radius: 34px;
 }
-
 .slider.round:before {
-  border-radius: 50%;
+    border-radius: 50%;
 }
 </style>
