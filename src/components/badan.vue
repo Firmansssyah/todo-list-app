@@ -8,11 +8,11 @@
         </div>
         <div class="content">
             <div class="input">
-                <input type="text" v-model="newlist" v-on:keyup.enter="addList" placeholder="add to-do here">
-                <input type="submit" value="Add" @click="addList">
+                <input type="text" v-model="newlist" v-on:keyup.enter="actionList" placeholder="add to-do here">
+                <input type="submit" value="Simpan" @click="actionList">
             </div>
             <div class="info">
-                To-do complete : {{todos.length}}
+                To-do complete : {{todoCompleted}}
             </div>
             <table>
                 <tr>
@@ -20,9 +20,9 @@
                     <th>To do</th>
                     <th>Status</th>
                 </tr>
-                <tr v-for="(todo,index) in todos" :key="index" :class="{ 'complete': todo.status}" @click='editList(index)'>
+                <tr v-for="(todo,index) in todos" :key="index" :class="{ 'complete': todo.status}">
                     <td>{{index+1}}</td>
-                    <td style="text-align: left;">{{todo.list}}</td>
+                    <td style="text-align: left;" @click='editList(index)'>{{todo.list}}</td>
                     <td>
                         <input type='checkbox'
                             v-model='todo.status'
@@ -42,6 +42,7 @@ export default {
     return {
         darkMode: false,        
         newlist: '',
+        selected_id: false,
         todos:[
             {list : "Mencuci Baju",status : true},
             {list : "Memperbaiki Kipas",status : true},
@@ -50,21 +51,25 @@ export default {
         ]}
     }, 
     methods:{
-        addList(){
-            for(var index in this.todos) {
-                if(this.todos[index].list == this.newlist) {
-                    this.$toasted.show(this.newlist + ' sudah ada !')
-                    return;
-                }else if(this.newlist == ''){
-                    this.$toasted.show('Isi woy !')
-                    return;
+        actionList() {
+            if(this.selected_id === false) { // maka tambah
+                for(var index in this.todos) {
+                    if(this.todos[index].list == this.newlist) {
+                        this.$toasted.show(this.newlist + ' sudah ada !')
+                        return;
+                    }else if(this.newlist == ''){
+                        this.$toasted.show('Isi woy !')
+                        return;
+                    }
                 }
+                this.$toasted.show(this.newlist +' berhasil ditambahkan!')
+                this.todos.push({
+                    list : this.newlist,
+                    status  :  false,
+                })
+            } else {
+                this.todos[this.selected_id].list = this.newlist;
             }
-            this.$toasted.show(this.newlist +' berhasil ditambahkan!')
-            this.todos.push({
-                list : this.newlist,
-                status  :  false,
-            })
             this.newlist = '';
         },
         delList(index) {
@@ -72,11 +77,21 @@ export default {
         },
         editList(index) {
             this.newlist = this.todos[index].list;
+            this.selected_id = index;
         },
         sort(arr) {
             return arr.slice().sort(function(a, b) {
             return a.status - b.status;
             });
+        }
+    },
+    computed: {
+        todoCompleted() {
+            let jumlah = 0;
+            for(var i in this.todos) {
+                if(this.todos[i].status) jumlah++;
+            }
+            return jumlah
         }
     }
 };
